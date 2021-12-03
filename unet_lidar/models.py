@@ -73,7 +73,7 @@ def unet_model(is_train=False, type='unet4'):
         model = unet4(scale=32)
 
         if is_train:
-            model.compile(optimizer=Adam(lr=1e-2), loss=dice_coef_loss, metrics=[dice_coef])
+            model.compile(optimizer=Adam(lr=1e-4), loss=dice_coef_loss, metrics=[dice_coef])
             # model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error', metrics=['mean_absolute_error'])
 
     elif type == 'custom_unet':
@@ -86,8 +86,8 @@ def unet_model(is_train=False, type='unet4'):
             output_activation='sigmoid'
         )
         if is_train:
-            # model.compile(optimizer=Adam(lr=1e-4), loss=dice_coef_loss, metrics=[dice_coef])
-            model.compile(optimizer=Adam(lr=1e-2), loss='binary_crossentropy')
+            model.compile(optimizer=Adam(lr=1e-4), loss=dice_coef_loss, metrics=[dice_coef])
+            # model.compile(optimizer=Adam(lr=1e-4), loss='binary_crossentropy')
 
     else:
         raise Exception('Unknown model type')

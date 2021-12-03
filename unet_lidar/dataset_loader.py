@@ -168,8 +168,8 @@ if __name__ == '__main__':
     )
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~
-    lidars, images = dl.get_items(is_augment=False)
-    lidars_a, images_a = dl.get_items(is_augment=True)
+    images, lidars = dl.get_items(is_augment=False)
+    images_a, lidars_a = dl.get_items(is_augment=True)
 
     print(lidars.shape, images.shape)
 
