@@ -52,6 +52,24 @@ We hope, you will be able to put this all together.
 
 # Train U-Net:
 
+## Prepare dataset
+
+To train the network, we use open geo data of Switzerland:
+
+1. [Hi-res RGB aero images](https://www.swisstopo.admin.ch/en/geodata/images/ortho/swissimage10.html) are downscaled to imitate satellite images.
+2. [Lidar data](https://www.swisstopo.admin.ch/en/geodata/height/surface3d.html) is used to produce vegetation height map. 
+
+You can get prepared dataset from [yandex disk](https://disk.yandex.ru/d/UtViWQoDQO4jHg)
+Put directory "swiss_lidar_and_surface" into <repo_root>/RES
+
+Or, you can download data manually and prepare it via jupyter notebook at
+<repo_root>/jupyter_notebooks/prepare_dataset_lidar_unet.ipynb
+
+To start jupyter:
+```bash
+venv/bin/jupyter notebook
+```
+
 ## Binary mask
 
 ```bash
