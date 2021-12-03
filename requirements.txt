@@ -1,5 +1,12 @@
 matplotlib
-opencv-python
 tensorflow
 keras-unet
 scipy
+
+requests
+opencv-contrib-python
+streamlit
+pydeck
+geocoder
+geopandas
+imageio

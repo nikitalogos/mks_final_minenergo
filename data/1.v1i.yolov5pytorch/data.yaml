@@ -1,0 +1,5 @@
+train: /home/neptun/PycharmProjects/test_repo/data/1.v1i.yolov5pytorch/train/images
+val: /home/neptun/PycharmProjects/test_repo/data/1.v1i.yolov5pytorch/valid/images
+
+nc: 2
+names: ['house', 'shadow_foot']
