@@ -30,7 +30,6 @@ class GeneratorWrapper(keras.utils.Sequence):
         )
 
 
-
 if __name__ == '__main__':
     this_file_dir = os.path.dirname(os.path.abspath(__file__))
     RESOURCES_DIR = f'{this_file_dir}/../RES/unet_lidar'

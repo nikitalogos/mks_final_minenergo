@@ -13,8 +13,8 @@ IDM = ImageDataGenerator(
     featurewise_std_normalization=False,
     samplewise_center=False,
     samplewise_std_normalization=False,
-    #zca_epsilon
-    #zca_whitening
+    # zca_epsilon
+    # zca_whitening
     rotation_range=10,
     width_shift_range=0.1,
     height_shift_range=0.1,
@@ -23,7 +23,7 @@ IDM = ImageDataGenerator(
 
     # zoom_range # zoom will lead to incorrect height detection due to scale change
 
-    #channel_shift_range=0.25,
+    # channel_shift_range=0.25,
 
     fill_mode='reflect',
 
@@ -151,7 +151,6 @@ class DatasetLoader:
         return len(self.train_names) if self.is_train else len(self.valid_names)
 
     def get_items(self):
-        idx = self._get_idx()
         self._inc_idx()
 
         lidar, image = self._load_lidar_and_image_by_idx()
@@ -258,6 +257,3 @@ if __name__ == '__main__':
         plt.figure(figsize=(10, 10))
         plt.imshow(res)
         plt.show()
-
-
-

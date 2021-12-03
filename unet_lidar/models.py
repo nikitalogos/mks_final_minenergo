@@ -81,4 +81,3 @@ def unet_model(is_train=False, type='unet4', is_regression=False, filters=32):
         model.summary()
 
     return model
-
