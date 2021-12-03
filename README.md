@@ -29,6 +29,11 @@ source venv/bin/activate
 venv/bin/pip install --upgrade pip && venv/bin/pip install -r requirements.txt
 ```
 
+* If you need yolo:
+```bash
+venv/bin/pip install -r yolov5/requirements.txt
+```
+
 ## TensorFlow installation
 
 ### On cpu

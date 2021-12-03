@@ -1,0 +1,5 @@
+{
+    "type": "custom_unet",
+    "is_regression": false,
+    "filters": 32
+}

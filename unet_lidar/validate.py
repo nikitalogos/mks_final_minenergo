@@ -7,14 +7,46 @@ import argparse
 import numpy as np
 import cv2
 from tqdm import tqdm
-from tensorflow.keras import backend as K
 
-from dataset_loader import DatasetLoader
-from models import unet_model
+from .dataset_loader import DatasetLoader
+from .models import unet_model
 
-# For 2D data (e.g. image), "channels_last" assumes (rows, cols, channels)
-# while "channels_first" assumes  (channels, rows, cols).
-K.set_image_data_format('channels_last')
+
+def process_one_image_lidar_pair(images, lidars, model, is_slice, is_regression):
+    if is_slice:
+        preds = []
+        for j in range(len(images)):
+            pred = model.predict(images[j:j + 1])[0]
+            preds.append(pred)
+        preds = np.array(preds)
+    else:
+        preds = model.predict(images)
+
+    if is_slice:
+        image = DatasetLoader.glue_pieces_together(images)
+        lidar = DatasetLoader.glue_pieces_together(lidars)
+        pred = DatasetLoader.glue_pieces_together(preds)
+    else:
+        image = images[0]
+        lidar = lidars[0]
+        pred = preds[0]
+
+    # we need to constrain values in case of regression
+    if is_regression:
+        pred[pred < 0.] = 0.
+        pred[pred > 1.] = 1.
+
+    image = (image * 255).astype(np.uint8)
+    lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
+    pred = (np.squeeze(pred) * 255).astype(np.uint8)
+
+    res = np.hstack([
+        np.dstack([lidar, lidar, lidar]),
+        image,
+        np.dstack([pred, pred, pred]),
+    ])
+
+    return res
 
 
 if __name__ == '__main__':
@@ -59,38 +91,13 @@ if __name__ == '__main__':
     for i in tqdm(range(dl.get_len())):
         images, lidars = dl.get_items()
 
-        if args.is_slice:
-            preds = []
-            for j in range(len(images)):
-                pred = model.predict(images[j:j+1])[0]
-                preds.append(pred)
-            preds = np.array(preds)
-        else:
-            preds = model.predict(images)
-
-        if args.is_slice:
-            image = DatasetLoader.glue_pieces_together(images)
-            lidar = DatasetLoader.glue_pieces_together(lidars)
-            pred = DatasetLoader.glue_pieces_together(preds)
-        else:
-            image = images[0]
-            lidar = lidars[0]
-            pred = preds[0]
-
-        # we need to constrain values in case of regression
-        if data_json['is_regression']:
-            pred[pred < 0.] = 0.
-            pred[pred > 1.] = 1.
-
-        image = (image * 255).astype(np.uint8)
-        lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
-        pred = (np.squeeze(pred) * 255).astype(np.uint8)
-
-        res = np.hstack([
-            np.dstack([lidar, lidar, lidar]),
-            image,
-            np.dstack([pred, pred, pred]),
-        ])
+        res = process_one_image_lidar_pair(
+            images=images,
+            lidars=lidars,
+            model=model,
+            is_slice=args.is_slice,
+            is_regression=data_json['is_regression']
+        )
 
         cv2.imwrite(
             f'{validation_dir}/%d.png' % i,

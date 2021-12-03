@@ -245,7 +245,7 @@ else:
     st.title('Используемые алгоритмы:')
     tyalgo = st.radio('', ('Классическое CV', 'Обучение с подкреплением',
                            'Детектор теней и домов нейросеткой', 'Стереопара',
-                           'Сегментация по маске (тип дкр)'))
+                           'Сегментация по маске (тип дкр)', 'Сегментация по маске (наличие дкр)'))
 
     st.write('**********************************************************************')
 
@@ -609,3 +609,37 @@ else:
                 fig = make_predictions(unet, path_img)
                 st.header('Результат')
                 st.pyplot(fig)
+
+    if tyalgo == 'Сегментация по маске (наличие дкр)':
+        from unet_lidar.plot_function import plot_function
+
+        st.write('Sample text')
+
+        this_file_dir = os.path.dirname(os.path.abspath(__file__))
+        images_dir = f'{this_file_dir}/RES/swiss_lidar_and_surface/for_plotting/image'
+        image_names = os.listdir(images_dir)
+        image_paths = [
+            os.path.join(images_dir, name)
+            for name in image_names
+        ]
+
+        n_im = st.slider('Номер фотографии', 0, 9)
+        _, col2, _ = st.columns([1, 3, 1])
+        with col2:
+            path_img = image_paths[n_im]
+            st.image(path_img)
+
+            select = st.radio('Обработка изображения', ('Целиком', 'Блоками по 496 пикселей'))
+            is_slice = select != 'Целиком'
+
+            go_unet = st.button('Выполнить')
+            if go_unet:
+                fig = plot_function(
+                    model_name='binary_mask_20_epochs',
+                    file_idx=n_im,
+                    is_slice=is_slice
+                )
+                st.header('Результат')
+                st.pyplot(fig)
+
+

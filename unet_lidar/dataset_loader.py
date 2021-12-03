@@ -35,63 +35,12 @@ IDM = ImageDataGenerator(
 )
 
 
-class DatasetLoader:
-    def __init__(self, base_dir, train_split=0.9, is_train=True, is_augment=True,
-                 is_lidar_binary=True, is_slice_images=True):
-        self.is_train = is_train
-        self.is_augment = is_augment
+class ImageLoader:
+    DIM = 496 * 6
+
+    def __init__(self, is_lidar_binary=True, is_slice_images=True):
         self.is_lidar_binary = is_lidar_binary
         self.is_slice_images = is_slice_images
-
-        self._train = []
-        self._eval = []
-
-        self.lidar_dir = f'{base_dir}/lidar'
-        self.image_dir = f'{base_dir}/image'
-
-        names = os.listdir(self.lidar_dir)
-        names2 = os.listdir(self.image_dir)
-
-        assert names == names2, 'Dataset is corrupted!'
-
-        ds_len = len(names)
-        print('Dataset consists of %d images' % ds_len)
-
-        train_len = int(ds_len * train_split)
-        self.train_names = names[:train_len]
-        self.valid_names = names[train_len:]
-        print('Train split: %d train, %d valid' % (
-            len(self.train_names),
-            len(self.valid_names)
-        ))
-
-        self.train_idx = 0
-        self.valid_idx = 0
-
-    def _inc_idx(self):
-        if self.is_train:
-            self.train_idx = (self.train_idx + 1) % len(self.train_names)
-        else:
-            self.valid_idx = (self.valid_idx + 1) % len(self.valid_names)
-
-    def _get_idx(self):
-        return self.train_idx if self.is_train else self.valid_idx
-
-    def _load_lidar_and_image_by_idx(self):
-        if self.is_train:
-            name = self.train_names[self.train_idx]
-        else:
-            name = self.valid_names[self.valid_idx]
-
-        print('Loading ' + name)
-
-        lidar = cv2.imread(os.path.join(self.lidar_dir, name), 0)
-        image = cv2.imread(os.path.join(self.image_dir, name))
-
-        assert(lidar.shape == (3000, 3000))
-        assert(image.shape == (3000, 3000, 3))
-
-        return lidar, image
 
     @staticmethod
     def _normalize(array, input_range=None):
@@ -109,23 +58,6 @@ class DatasetLoader:
         array *= 1.0 / spread
 
         return array
-
-    def _augment_data(self, lidars, images):
-        lidars_proc = []
-        images_proc = []
-
-        seed = np.random.randint(0, 100000)
-        gen1 = IDM.flow(lidars, batch_size=1, seed=seed)
-        gen2 = IDM.flow(images, batch_size=1, seed=seed)
-
-        for k in range(len(images)):
-            lidars_proc.append(gen1.__next__())
-            images_proc.append(gen2.__next__())
-
-        lidars_proc = np.concatenate(lidars_proc, axis=0)
-        images_proc = np.concatenate(images_proc, axis=0)
-
-        return lidars_proc, images_proc
 
     @staticmethod
     def _slice_in_pieces(image):
@@ -147,34 +79,117 @@ class DatasetLoader:
             ]) for i in range(6)
         ])
 
-    def get_len(self):
-        return len(self.train_names) if self.is_train else len(self.valid_names)
+    def load_image_by_path(self, path):
+        image = cv2.imread(path)
+        assert (image.shape == (3000, 3000, 3))
 
-    def get_items(self):
-        self._inc_idx()
-
-        lidar, image = self._load_lidar_and_image_by_idx()
-
-        if self.is_lidar_binary:
-            lidar[lidar > 0] = 255
-
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.is_slice_images:
-            lidars = self._slice_in_pieces(lidar)
             images = self._slice_in_pieces(image)
         else:
-            DIM = 496 * 6
-            lidars = [lidar[0:DIM, 0:DIM]]
-            images = [image[0:DIM, 0:DIM]]
+            images = [image[0:self.DIM, 0:self.DIM]]
 
-        lidars = np.array([
-            np.expand_dims(self._normalize(lidar, input_range=(0, 255)), axis=-1)
-            for lidar in lidars
-        ])
         images = np.array([
             self._normalize(image)
             for image in images
         ])
 
+        return images
+
+    def load_lidar_by_path(self, path):
+        lidar = cv2.imread(path, 0)
+        assert (lidar.shape == (3000, 3000))
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        if self.is_lidar_binary:
+            lidar[lidar > 0] = 255
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        if self.is_slice_images:
+            lidars = self._slice_in_pieces(lidar)
+        else:
+            lidars = [lidar[0:self.DIM, 0:self.DIM]]
+
+        lidars = np.array([
+            np.expand_dims(self._normalize(lidar, input_range=(0, 255)), axis=-1)
+            for lidar in lidars
+        ])
+
+        return lidars
+
+
+class DatasetLoader(ImageLoader):
+    def __init__(self, base_dir, train_split=0.9, is_train=True, is_augment=True, **kwargs):
+        super().__init__(**kwargs)
+
+        self.is_train = is_train
+        self.is_augment = is_augment
+
+        self.lidar_dir = f'{base_dir}/lidar'
+        self.image_dir = f'{base_dir}/image'
+
+        names = os.listdir(self.lidar_dir)
+        names2 = os.listdir(self.image_dir)
+
+        assert names == names2, 'Dataset is corrupted!'
+
+        ds_len = len(names)
+        print('Dataset consists of %d images' % ds_len)
+
+        train_len = int(ds_len * train_split)
+        train_names = names[:train_len]
+        valid_names = names[train_len:]
+        print('Train split: %d train, %d valid' % (
+            len(train_names),
+            len(valid_names)
+        ))
+
+        if self.is_train:
+            self.names = train_names
+        else:
+            self.names = valid_names
+
+        self.idx = 0
+
+    def _inc_idx(self):
+        self.idx = (self.idx + 1) % len(self.names)
+
+    def _augment_data(self, lidars, images):
+        lidars_proc = []
+        images_proc = []
+
+        seed = np.random.randint(0, 100000)
+        gen1 = IDM.flow(lidars, batch_size=1, seed=seed)
+        gen2 = IDM.flow(images, batch_size=1, seed=seed)
+
+        for k in range(len(images)):
+            lidars_proc.append(gen1.__next__())
+            images_proc.append(gen2.__next__())
+
+        lidars_proc = np.concatenate(lidars_proc, axis=0)
+        images_proc = np.concatenate(images_proc, axis=0)
+
+        return lidars_proc, images_proc
+
+    def get_len(self):
+        return len(self.names)
+
+    def set_idx(self, idx):
+        assert idx >= 0 and idx < len(self.names)
+        self.idx = idx
+
+    def get_items(self):
+        name = self.names[self.idx]
+        self._inc_idx()
+        print('Loading ' + name)
+
+        image_path = os.path.join(self.image_dir, name)
+        lidar_path = os.path.join(self.lidar_dir, name)
+
+        images = self.load_image_by_path(image_path)
+        lidars = self.load_lidar_by_path(lidar_path)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if self.is_augment:
             lidars, images = self._augment_data(lidars, images)
 
