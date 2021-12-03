@@ -613,7 +613,10 @@ else:
     if tyalgo == 'Сегментация по маске (наличие дкр)':
         from unet_lidar.plot_function import plot_function
 
-        st.write('Sample text')
+        st.write('Бинарная сегментация снимка на лес / не лес.\n'
+                 'Каждому пикселю присваивается вероятность быть "лесом" от 0 до 1.\n'
+                 'Нейросеть обучена на открытых географических данных Швейцарии.\n'
+                 'В качестве ground truth использовались высокоточные лидарные карты местности.')
 
         this_file_dir = os.path.dirname(os.path.abspath(__file__))
         images_dir = f'{this_file_dir}/RES/swiss_lidar_and_surface/for_plotting/image'
