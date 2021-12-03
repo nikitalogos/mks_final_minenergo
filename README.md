@@ -28,3 +28,24 @@ source venv/bin/activate
 ```bash
 venv/bin/pip install --upgrade pip && venv/bin/pip install -r requirements.txt
 ```
+
+## TensorFlow installation
+
+### On cpu
+
+Works out of the box.
+
+### For training on GPU
+
+Tensorflow is known to be susceptible to versions of dependencies. 
+
+So, installation differs from pc to pc. Here is our setup:
+
+1. Xiaomi Mi Gaming Laptop
+2. NVIDIA GeForce GTX 1060
+3. Ubuntu 16.04
+4. Cuda installed via instructions from this link: https://www.tensorflow.org/install/gpu
+5. Python 3.7
+6. TensorFlow 2.4.0
+
+We hope, you will be able to put this all together.

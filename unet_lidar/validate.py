@@ -39,12 +39,13 @@ if __name__ == '__main__':
     )
 
     images, lidars = dl.get_items(is_train=False, is_augment=False)
-    preds = model.predict(images)
 
     for i in range(len(images)):
+        pred = model.predict(images[i:i+1])
+
         image = (images[i] * 255).astype(np.uint8)
         lidar = (np.squeeze(lidars[i]) * 255).astype(np.uint8)
-        pred = (np.squeeze(preds[i]) * 255).astype(np.uint8)
+        pred = (np.squeeze(pred) * 255).astype(np.uint8)
 
         res = np.hstack([
             np.dstack([lidar, lidar, lidar]),
