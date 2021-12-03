@@ -10,3 +10,6 @@ pydeck
 geocoder
 geopandas
 imageio
+
+scikit-learn
+imutils
