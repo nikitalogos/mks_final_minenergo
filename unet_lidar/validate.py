@@ -77,6 +77,11 @@ if __name__ == '__main__':
             lidar = lidars[0]
             pred = preds[0]
 
+        # we need to constrain values in case of regression
+        if data_json['is_regression']:
+            pred[pred < 0.] = 0.
+            pred[pred > 1.] = 1.
+
         image = (image * 255).astype(np.uint8)
         lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
         pred = (np.squeeze(pred) * 255).astype(np.uint8)
