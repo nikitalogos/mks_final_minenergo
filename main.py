@@ -19,15 +19,16 @@ def get_df():
     random.seed(42)
     world = geopandas.read_file(geopandas.datasets.get_path('naturalearth_lowres'))
     rus = geopandas.GeoSeries(world[world['iso_a3'] == 'RUS']['geometry'])
-    aa = np.random.randint(-100, 100, size=(1000, 2)) + [95.18068700622543, 63.92040775075484]
+    aa = np.random.randint(-100, 100, size=(2000, 2)) + [95.18068700622543, 63.92040775075484]
 
     c1 = []
-    for i in range(1000):
+    for i in range(2000):
         s = Point(aa[i, 0], aa[i, 1])
         if rus.contains(s)[18]:
-            c1.append([aa[i, 0], aa[i, 1], 100*random.random(), random.choice(region), random.randint(1, 1000), 1])
+            c1.append([aa[i, 0], aa[i, 1], 100*random.random(), random.choice(region),
+                       'ВЛ-'+str(random.randint(1, 1000)), random.randint(2010, 2022), 1])
 
-    df = pd.DataFrame(c1, columns=['lon', 'lat', 'weight', 'region', 'line', 'count'])
+    df = pd.DataFrame(c1, columns=['lon', 'lat', 'deviation', 'region', 'line', 'year', 'count'])
 
     return df
 
@@ -37,14 +38,30 @@ def hex_to_rgb(h):
 
 
 
-level = st.sidebar.radio('Выберите, что хотите посмотреть:', ('Дашборд', 'Алгоритмы'), 1)
+level = st.sidebar.radio('Выберите, что хотите посмотреть:', ('Дашборд', 'Алгоритмы'), 0)
 if level == 'Дашборд':
 
     v = st.radio('Ситуация:', ('В целом по РФ', 'Местная'))
-    df = get_df()
+    df_big = get_df()
+    df = df_big[df_big['year'] == 2021]
     if v == 'В целом по РФ':
 
-        st.title('Ситуационная карта РФ')
+        st.title('Состояние просек охранных зон ВЛ ЛЭП РФ')
+        st.write('**********************************************************')
+        # st.header('Основные показатели KPI:')
+        st.title('10% (10190)')
+        st.subheader('просек не соответствует нормативу')
+        col1, col2 = st.columns(2)
+        with col1:
+            # st.write('Среднее по региону:')
+            d1 = pd.DataFrame(df.groupby(['region'])['deviation'].mean())
+            # st.write(d1)
+        with col2:
+            # st.write('Количество проблемных точек:')
+            d2 = pd.DataFrame(df.groupby(['line'])['count'].sum())
+            # st.write(d1)
+            # st.write(d2[ d2['count'] > 1])
+        st.write('**********************************************************')
         st.pydeck_chart(pdk.Deck(
             map_style = 'mapbox://styles/mapbox/light-v9',
                         initial_view_state = pdk.ViewState(
@@ -62,26 +79,23 @@ if level == 'Дашборд':
                                     get_position=["lon", "lat"],
                                     # threshold=0.75,
                                     aggregation=pdk.types.String("MEAN"),
-                                    get_weight="weight",
+                                    get_weight="deviation",
                                     auto_highlight=True,
                                     # pickable=True,
                                 )
                             ],
          ))
-
-        st.header('Основные показатели KPI:')
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write('Среднее по региону:')
-            d1 = pd.DataFrame(df.groupby(['region'])['weight'].mean())
-            st.write(d1)
-        with col2:
-            st.write('Количество проблемных точек:')
-            d2 = pd.DataFrame(df.groupby(['line'])['count'].sum())
-            # st.write(d1)
-            st.write(d2[ d2['count'] > 1])
-
-        st.line_chart(d1)
+        # st.write(d1)
+        # st.write(' ')
+        # st.write(' ')
+        # st.write('Состояние просек ВЛЭП в ()')
+        d1 = d1.sort_values(by=['deviation'], ascending=False)
+        fig, ax = plt.subplots()
+        ax.bar(height=d1['deviation'], x = d1.index)
+        ax.set_title('Состояние просек ВЛ ЛЭП, %')
+        plt.xticks(rotation=90)
+        st.pyplot(fig)
+        # st.line_chart(d1)
 
     else:
         reg = st.selectbox('Выберите регион', region)
@@ -89,7 +103,7 @@ if level == 'Дашборд':
         st.write(df1)
 
         lines_reg = sorted(df1['line'].tolist())
-        li = st.selectbox('Выберите линию', lines_reg)
+        li = st.selectbox('Выберите ВЛ ЛЭП', lines_reg)
 
         row = df1[df1['line'] == li].iloc[0]
         n_chan = random.randint(4,10)
@@ -153,7 +167,7 @@ if level == 'Дашборд':
         fill_color_mean = [[250, 250, 50], [250, 250, 50]]
         fill_color_big = [[200, 20, 20], [200, 20, 20]]
 
-        what_look = st.multiselect('Участки с какой растительностью показывать:', ['Низкая', "Средняя", "Высокая"],
+        what_look = st.multiselect('Высота растительности:', ['Низкая', "Средняя", "Высокая"],
                                    ['Низкая', "Средняя", "Высокая"])
 
         layer_tree1 = pdk.Layer(
@@ -203,9 +217,29 @@ if level == 'Дашборд':
                             layers = [layer_opor] + layer_tree
              ))
 
+        st.subheader('Предсказание роста ДКП')
+        year_f = st.number_input('Год для предсказания', 2022, 2030, 2025)
+        # предскажем по 2 точкам
+        # df_height = pd.DataFrame(data_tree, columns=['coordinates', 'height', "type"])
+        df_height_5 = df_height.copy()
+        df_height_5['height_5'] = df_height['height'].apply(lambda row: row / random.randint(2,4) )
+        df_height_5['pred'] = df_height_5.apply(lambda row: (row['height'] - row['height_5'])/5 * (year_f-2021) + row['height_5'], axis=1)
+        df_height_5['type_new'] = df_height_5['pred'].apply(lambda x: 'low' if x < 3 else ('mean' if x < 7 else 'big'))
+        # st.write(df_height_5)
+        col1, col2 = st.columns(2)
+        with col2:
+            st.write('Количество точек с определенной высотой ДКР в {}г'.format(int(year_f)))
+            st.write(df_height_5.groupby('type_new')['type'].count())
+        with col1:
+            st.write(f'Количество точек с определенной высотой ДКР в 2021г')
+            st.write(df_height_5.groupby('type')['type_new'].count())
 
-
-
+# if height1 < 3:
+#     type = 'low'
+# elif height1 < 7:
+#     type = 'mean'
+# else:
+#     type = 'big'
 
 else:
     st.title('Используемые алгоритмы:')
