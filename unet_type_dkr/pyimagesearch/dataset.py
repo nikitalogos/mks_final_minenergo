@@ -36,7 +36,7 @@ class SegmentationDataset(Dataset):
 		new_mask = np.zeros((config.INPUT_IMAGE_WIDTH, config.INPUT_IMAGE_HEIGHT), dtype=np.uint8)
 		for i in range(config.INPUT_IMAGE_WIDTH):
 			for j in range(config.INPUT_IMAGE_HEIGHT):
-				if mask[i,j] == 117: #86: # hvoya
+				if mask[i,j] == 86: #86: 117 # hvoya
 					new_mask[i, j] = 1
 
 		if self.transformsMask is not None:

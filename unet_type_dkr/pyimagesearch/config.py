@@ -9,7 +9,7 @@ MASK_DATASET_PATH = os.path.join(DATASET_PATH, "masks")
 # define the test split
 TEST_SPLIT = 0.15
 # determine the device to be used for training and evaluation
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cpu" if torch.cuda.is_available() else "cpu"
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
@@ -35,4 +35,5 @@ BASE_OUTPUT = "./output"
 MODEL_PATH = os.path.join(BASE_OUTPUT, "unet_type_dkr.pth")
 PLOT_PATH = os.path.sep.join([BASE_OUTPUT, "plot.png"])
 
-TEST_PATHS = os.path.join(DATASET_PATH, "val_img.txt")
+TEST_PATHS = os.path.join(DATASET_PATH, "val_img2.txt")
+TEST_PATHS2 = os.path.join('unet_type_dkr', 'dataset', "val_img.txt")

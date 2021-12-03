@@ -1,9 +1,9 @@
 # USAGE
 # python train.py
 # import the necessary packages
-from pyimagesearch.dataset import SegmentationDataset
-from pyimagesearch.model import UNet
-from pyimagesearch import config
+from unet_type_dkr.pyimagesearch.dataset import SegmentationDataset
+from unet_type_dkr.pyimagesearch.model import UNet
+from unet_type_dkr.pyimagesearch import config
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, NLLLoss2d
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -127,4 +127,4 @@ plt.ylabel("Loss")
 plt.legend(loc="lower left")
 plt.savefig(config.PLOT_PATH)
 # serialize the model to disk
-torch.save(unet, config.MODEL_PATH)
+torch.save(unet.state_dict(), config.MODEL_PATH)
