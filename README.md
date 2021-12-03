@@ -49,3 +49,17 @@ So, installation differs from pc to pc. Here is our setup:
 6. TensorFlow 2.4.0
 
 We hope, you will be able to put this all together.
+
+# Train U-Net:
+
+## Binary mask
+
+```bash
+./unet_lidar/train.py --name binary_mask
+```
+
+## Regression
+
+```bash
+./unet_lidar/train.py --name regression --is_regression 1
+```
