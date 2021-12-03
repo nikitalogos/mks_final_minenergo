@@ -3,8 +3,6 @@ from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, Up
 from tensorflow.keras.optimizers import Adam
 from keras_unet.models import custom_unet
 
-from tensorflow.keras import backend as K
-
 
 def conv_f(x, maps):
     conv = Conv2D(maps, (3, 3), activation='relu', padding='same')(x)
@@ -36,7 +34,7 @@ def decoder_f(x, x_bypass, maps):
     return conv
 
 
-def unet4(scale=32, is_linear=False):
+def unet4(scale=32, is_regression=False):
     inputs = Input((None, None, 3))
 
     e1, e1_bypass = encoder_f(inputs, scale)
@@ -50,7 +48,7 @@ def unet4(scale=32, is_linear=False):
     d3 = decoder_f(d2, e2_bypass, scale * 2)
     d4 = decoder_f(d3, e1_bypass, scale)
 
-    if is_linear:
+    if is_regression:
         outputs = Conv2D(1, (1, 1), activation='linear')(d4)
     else:
         outputs = Conv2D(1, (1, 1), activation='sigmoid')(d4)
@@ -59,23 +57,23 @@ def unet4(scale=32, is_linear=False):
     return model
 
 
-def unet_model(is_train=False, type='unet4', is_linear=False):
+def unet_model(is_train=False, type='unet4', is_regression=False, filters=32):
     if type == 'unet4':
-        model = unet4(scale=32, is_linear=is_linear)
+        model = unet4(scale=filters, is_regression=is_regression)
     elif type == 'custom_unet':
         model = custom_unet(
             input_shape=(None, None, 3),
             use_batch_norm=False,
             num_classes=1,
-            filters=32,
+            filters=filters,
             dropout=0.2,
-            output_activation='linear' if is_linear else 'sigmoid'
+            output_activation='linear' if is_regression else 'sigmoid'
         )
     else:
         raise Exception('Unknown model type')
 
     if is_train:
-        if is_linear:
+        if is_regression:
             model.compile(optimizer=Adam(lr=1e-4), loss='binary_crossentropy')
         else:
             model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error')

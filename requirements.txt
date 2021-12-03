@@ -2,6 +2,7 @@ matplotlib
 tensorflow==2.4.0
 keras-unet
 scipy
+tqdm
 
 requests
 opencv-contrib-python
