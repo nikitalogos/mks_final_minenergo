@@ -127,6 +127,26 @@ class DatasetLoader:
 
         return lidars_proc, images_proc
 
+    @staticmethod
+    def _slice_in_pieces(image):
+        DIM = 496
+
+        slices = []
+        for i in range(6):
+            for j in range(6):
+                slices.append(
+                    image[DIM * i:DIM * (i + 1), DIM * j:DIM * (j + 1)]
+                )
+        return slices
+
+    @staticmethod
+    def glue_pieces_together(slices):
+        return np.vstack([
+            np.hstack([
+                slices[i * 6 + j] for j in range(6)
+            ]) for i in range(6)
+        ])
+
     def get_len(self):
         return len(self.train_names) if self.is_train else len(self.valid_names)
 
@@ -139,27 +159,13 @@ class DatasetLoader:
         if self.is_lidar_binary:
             lidar[lidar > 0] = 255
 
-        lidars = []
-        images = []
-
-        DIM = 496
         if self.is_slice_images:
-            for i in range(6):
-                for j in range(6):
-                    lidars.append(
-                        lidar[DIM * i:DIM * (i + 1), DIM * j:DIM * (j + 1)]
-                    )
-                    images.append(
-                        image[DIM * i:DIM * (i + 1), DIM * j:DIM * (j + 1)]
-                    )
+            lidars = self._slice_in_pieces(lidar)
+            images = self._slice_in_pieces(image)
         else:
-            DIM_6 = DIM * 6
-            lidars.append(
-                lidar[0:DIM_6, 0:DIM_6]
-            )
-            images.append(
-                image[0:DIM_6, 0:DIM_6]
-            )
+            DIM = 496 * 6
+            lidars = [lidar[0:DIM, 0:DIM]]
+            images = [image[0:DIM, 0:DIM]]
 
         lidars = np.array([
             np.expand_dims(self._normalize(lidar, input_range=(0, 255)), axis=-1)
@@ -184,12 +190,39 @@ if __name__ == '__main__':
         DATASET_DIR,
         is_augment=False,
         is_lidar_binary=False,
+    )
+    images, lidars = dl.get_items()
+    print(images.shape, lidars.shape)
+
+    for i in range(3):
+        images, lidars = dl.get_items()
+
+        image = DatasetLoader.glue_pieces_together(images)
+        lidar = DatasetLoader.glue_pieces_together(lidars)
+
+        lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
+        img = (image * 255).astype(np.uint8)
+
+        res = np.hstack([
+            np.dstack([lidar, lidar, lidar]),
+            img
+        ])
+
+        plt.figure(figsize=(10, 10))
+        plt.imshow(res)
+        plt.show()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    dl = DatasetLoader(
+        DATASET_DIR,
+        is_augment=False,
+        is_lidar_binary=False,
         is_slice_images=False
     )
     images, lidars = dl.get_items()
     print(images.shape, lidars.shape)
 
-    for i in range(6):
+    for i in range(3):
         images, lidars = dl.get_items()
 
         lidar = (np.squeeze(lidars[0]) * 255).astype(np.uint8)
@@ -200,17 +233,15 @@ if __name__ == '__main__':
             img
         ])
 
-        plt.figure(figsize=(10,10))
+        plt.figure(figsize=(10, 10))
         plt.imshow(res)
         plt.show()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
     dl_a = DatasetLoader(
         DATASET_DIR,
         is_augment=True,
-        is_lidar_binary=True,
-        is_slice_images=True
+        is_lidar_binary=True
     )
     images_a, lidars_a = dl_a.get_items()
     print(images_a.shape, lidars_a.shape)

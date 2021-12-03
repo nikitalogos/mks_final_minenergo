@@ -37,11 +37,11 @@ if __name__ == '__main__':
     DATASET_DIR = f'{this_file_dir}/../RES/swiss_lidar_and_surface/processed'
 
     parser = argparse.ArgumentParser(description='Training of U-Net')
-    parser.add_argument('--type', type=int, default='custom_unet')
+    parser.add_argument('--type', type=str, default='custom_unet')
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--filters', type=int, default=32)
     parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--is_regression', type=bool, default=False)
+    parser.add_argument('--is_regression', type=int, default=0)
     parser.add_argument('--name', type=str, default='default')
     parser.add_argument('--prev_name', type=str, default=None)
     args = parser.parse_args()

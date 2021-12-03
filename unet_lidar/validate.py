@@ -24,6 +24,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Validation of U-Net')
     parser.add_argument('--name', type=str, default='default')
+    parser.add_argument('--is_slice', type=int, default=1)
     args = parser.parse_args()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +53,7 @@ if __name__ == '__main__':
         is_train=False,
         is_augment=False,
         is_lidar_binary=(not data_json['is_regression']),
-        is_slice_images=False,
+        is_slice_images=args.is_slice,
     )
 
     for i in tqdm(range(dl.get_len())):
@@ -60,9 +61,18 @@ if __name__ == '__main__':
 
         preds = model.predict(images)
 
-        image = (np.squeeze(images[0]) * 255).astype(np.uint8)
-        lidar = (np.squeeze(lidars[0]) * 255).astype(np.uint8)
-        pred = (np.squeeze(preds[0]) * 255).astype(np.uint8)
+        if args.is_slice:
+            image = DatasetLoader.glue_pieces_together(images)
+            lidar = DatasetLoader.glue_pieces_together(lidars)
+            pred = DatasetLoader.glue_pieces_together(preds)
+        else:
+            image = images[0]
+            lidar = lidars[0]
+            pred = preds[0]
+
+        image = (image * 255).astype(np.uint8)
+        lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
+        pred = (np.squeeze(pred) * 255).astype(np.uint8)
 
         res = np.hstack([
             np.dstack([lidar, lidar, lidar]),
@@ -74,19 +84,6 @@ if __name__ == '__main__':
             f'{validation_dir}/%d.png' % i,
             res
         )
-
-    # for i in range(len(images)):
-    #     pred = model.predict(images[i:i+1])
-    #
-    #     image = (images[i] * 255).astype(np.uint8)
-    #     lidar = (np.squeeze(lidars[i]) * 255).astype(np.uint8)
-    #     pred = (np.squeeze(pred) * 255).astype(np.uint8)
-    #
-    #     res = np.hstack([
-    #         np.dstack([lidar, lidar, lidar]),
-    #         image,
-    #         np.dstack([pred, pred, pred]),
-    #     ])
 
     print('Done!')
 
