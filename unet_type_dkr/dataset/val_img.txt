@@ -1,5 +1,5 @@
-./dataset/images/2021-12-03_09-40_1.png
-./dataset/images/2021-12-03_09-37_3.png
-./dataset/images/2021-12-03_09-39_1.png
-./dataset/images/2021-12-03_09-37_5.png
-./dataset/images/2021-12-03_09-36.png
+./unet_type_dkr/dataset/images/2021-12-03_09-40_1.png
+./unet_type_dkr/dataset/images/2021-12-03_09-37_3.png
+./unet_type_dkr/dataset/images/2021-12-03_09-39_1.png
+./unet_type_dkr/dataset/images/2021-12-03_09-37_5.png
+./unet_type_dkr/dataset/images/2021-12-03_09-36.png

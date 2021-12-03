@@ -1,0 +1,13 @@
+version: '3'
+services:
+  streamlit:
+    restart: always
+    image: energo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+networks:
+  default:
+    driver: bridge
