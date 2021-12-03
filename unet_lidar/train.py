@@ -24,7 +24,8 @@ class GeneratorWrapper(keras.utils.Sequence):
         return self.dataset_loader.get_train_len()
 
     def __getitem__(self, idx):
-        return self.dataset_loader.get_items(is_train=True, is_augment=True)
+        i, l = self.dataset_loader.get_items(is_train=True, is_augment=True)
+        return i[:8], l[:8]
 
 
 if __name__ == '__main__':

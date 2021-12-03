@@ -6,17 +6,6 @@ from keras_unet.models import custom_unet
 from tensorflow.keras import backend as K
 
 
-def dice_coef(y_true, y_pred):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (2. * intersection + 1.0) / (K.sum(y_true_f) + K.sum(y_pred_f) + 1.0)
-
-
-def dice_coef_loss(y_true, y_pred):
-    return -dice_coef(y_true, y_pred)
-
-
 def conv_f(x, maps):
     conv = Conv2D(maps, (3, 3), activation='relu', padding='same')(x)
     # drop = Dropout(0.5)(conv)
@@ -47,7 +36,7 @@ def decoder_f(x, x_bypass, maps):
     return conv
 
 
-def unet4(scale=32):
+def unet4(scale=32, is_linear=False):
     inputs = Input((None, None, 3))
 
     e1, e1_bypass = encoder_f(inputs, scale)
@@ -61,21 +50,18 @@ def unet4(scale=32):
     d3 = decoder_f(d2, e2_bypass, scale * 2)
     d4 = decoder_f(d3, e1_bypass, scale)
 
-    outputs = Conv2D(1, (1, 1), activation='sigmoid')(d4)
-    # outputs = Conv2D(1, (1, 1), activation='linear')(d4)
+    if is_linear:
+        outputs = Conv2D(1, (1, 1), activation='linear')(d4)
+    else:
+        outputs = Conv2D(1, (1, 1), activation='sigmoid')(d4)
 
     model = Model(inputs=[inputs], outputs=[outputs])
     return model
 
 
-def unet_model(is_train=False, type='unet4'):
+def unet_model(is_train=False, type='unet4', is_linear=False):
     if type == 'unet4':
-        model = unet4(scale=32)
-
-        if is_train:
-            model.compile(optimizer=Adam(lr=1e-2), loss=dice_coef_loss, metrics=[dice_coef])
-            # model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error', metrics=['mean_absolute_error'])
-
+        model = unet4(scale=32, is_linear=is_linear)
     elif type == 'custom_unet':
         model = custom_unet(
             input_shape=(None, None, 3),
@@ -83,16 +69,17 @@ def unet_model(is_train=False, type='unet4'):
             num_classes=1,
             filters=32,
             dropout=0.2,
-            output_activation='sigmoid'
+            output_activation='linear' if is_linear else 'sigmoid'
         )
-        if is_train:
-            # model.compile(optimizer=Adam(lr=1e-4), loss=dice_coef_loss, metrics=[dice_coef])
-            model.compile(optimizer=Adam(lr=1e-2), loss='binary_crossentropy')
-
     else:
         raise Exception('Unknown model type')
 
     if is_train:
+        if is_linear:
+            model.compile(optimizer=Adam(lr=1e-4), loss='binary_crossentropy')
+        else:
+            model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error')
+
         model.summary()
 
     return model
