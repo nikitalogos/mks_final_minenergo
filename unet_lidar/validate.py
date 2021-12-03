@@ -59,7 +59,14 @@ if __name__ == '__main__':
     for i in tqdm(range(dl.get_len())):
         images, lidars = dl.get_items()
 
-        preds = model.predict(images)
+        if args.is_slice:
+            preds = []
+            for i in range(len(images)):
+                pred = model.predict(images[i:i+1])[0]
+                preds.append(pred)
+            preds = np.array(preds)
+        else:
+            preds = model.predict(images)
 
         if args.is_slice:
             image = DatasetLoader.glue_pieces_together(images)
