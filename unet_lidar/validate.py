@@ -61,8 +61,8 @@ if __name__ == '__main__':
 
         if args.is_slice:
             preds = []
-            for i in range(len(images)):
-                pred = model.predict(images[i:i+1])[0]
+            for j in range(len(images)):
+                pred = model.predict(images[j:j+1])[0]
                 preds.append(pred)
             preds = np.array(preds)
         else:
