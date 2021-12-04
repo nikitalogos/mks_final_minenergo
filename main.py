@@ -287,7 +287,7 @@ else:
             go_unet = st.button('Выполнить')
             if go_unet:
                 fig = plot_function(
-                    model_name='binary_mask_20_epochs' if tyalgo == segm_dkr else 'regression',
+                    model_name='binary_mask_30_epochs' if tyalgo == segm_dkr else 'regression',
                     file_idx=n_im,
                     is_slice=is_slice
                 )
