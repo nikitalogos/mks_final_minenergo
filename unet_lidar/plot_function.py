@@ -57,7 +57,7 @@ def plot_function(model_name, file_idx, is_slice=False):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     images, lidars = dl.get_items()
 
-    combo = process_one_image_lidar_pair(
+    combo, _ = process_one_image_lidar_pair(
         images=images,
         lidars=lidars,
         model=model,

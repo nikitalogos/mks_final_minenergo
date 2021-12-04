@@ -43,13 +43,20 @@ def process_one_image_lidar_pair(images, lidars, model, is_slice, is_regression)
     lidar = (np.squeeze(lidar) * 255).astype(np.uint8)
     pred = (np.squeeze(pred) * 255).astype(np.uint8)
 
+    metrics = {}
+    if is_regression:
+        metrics['mae'] = np.average(cv2.absdiff(lidar, pred))
+    else:
+        intersection = np.sum((lidar > 127) * (pred > 127))
+        union = np.sum((lidar > 127) | (pred > 127))
+        metrics['iou'] = intersection / union
+
     res = np.hstack([
         np.dstack([lidar, lidar, lidar]),
         image,
         np.dstack([pred, pred, pred]),
     ])
-
-    return res
+    return res, metrics
 
 
 if __name__ == '__main__':
@@ -91,10 +98,11 @@ if __name__ == '__main__':
         is_slice_images=args.is_slice,
     )
 
+    metrics_list = []
     for i in tqdm(range(dl.get_len())):
         images, lidars = dl.get_items()
 
-        res = process_one_image_lidar_pair(
+        res, metrics = process_one_image_lidar_pair(
             images=images,
             lidars=lidars,
             model=model,
@@ -102,10 +110,16 @@ if __name__ == '__main__':
             is_regression=data_json['is_regression']
         )
 
+        metrics_list.append(metrics)
+
         cv2.imwrite(
             f'{validation_dir}/%d.png' % i,
             res
         )
+
+    metric = list(metrics_list[0].keys())[0]
+    values = [m[metric] for m in metrics_list]
+    print(f'Metric {metric}:', values, np.average(values))
 
     print('Done!')
 
