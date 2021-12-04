@@ -459,7 +459,7 @@ else:
 
         go_yolo = st.button('Выполнить')
         if go_yolo:
-            from yolov5.detect import run
+            from detect import run
             args = {
             'source': path_img,
             'weights': './yolov5/vesa_for_demo/exp2/weights/best.pt',
