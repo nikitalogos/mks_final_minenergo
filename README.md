@@ -1,3 +1,7 @@
+# Live demo
+
+Live demo is available via this link: https://zeus.mkskom.ru/
+
 # Install
 
 ## Setup python environment
@@ -141,4 +145,3 @@ http://localhost:8501
 
 ## Сайт
 Файл main.py - страница сайта, куда выведены все алгоритмы. Написан на библиотеки https://streamlit.io/
-
