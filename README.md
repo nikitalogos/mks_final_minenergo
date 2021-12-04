@@ -105,6 +105,17 @@ Regression example:
 
 ![regression](https://github.com/SafronovNikita/mks_final_minenergo/raw/master/RES/readme_images/regression.png)
 
+Segmentation metrics:
+
+- IOU = 0.538
+- binary_accuracy = 0.865
+
+Regression metrics (each height division is 0.25 m):
+
+- Metric mae: 18.090 (~4.5 m)
+- Metric mse: 70.259
+- Metric rmse: 8.368 (σ ~ 2.09 m)
+
 
 # Описание других алгоритмов.
 

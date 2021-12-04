@@ -45,11 +45,20 @@ def process_one_image_lidar_pair(images, lidars, model, is_slice, is_regression)
 
     metrics = {}
     if is_regression:
-        metrics['mae'] = np.average(cv2.absdiff(lidar, pred))
+        absdiff = cv2.absdiff(lidar, pred)
+
+        metrics['mae'] = np.average(absdiff)
+
+        mse = np.average(absdiff**2)
+        metrics['mse'] = mse
+        metrics['rmse'] = np.sqrt(mse)
     else:
         intersection = np.sum((lidar > 127) * (pred > 127))
         union = np.sum((lidar > 127) | (pred > 127))
         metrics['iou'] = intersection / union
+
+        h, w = lidar.shape
+        metrics['binary_accuracy'] = np.sum((lidar > 127) == (pred > 127)) / (h * w)
 
     res = np.hstack([
         np.dstack([lidar, lidar, lidar]),
@@ -117,9 +126,14 @@ if __name__ == '__main__':
             res
         )
 
-    metric = list(metrics_list[0].keys())[0]
-    values = [m[metric] for m in metrics_list]
-    print(f'Metric {metric}:', values, np.average(values))
+    metric_names = list(metrics_list[0].keys())
+    for name in metric_names:
+        values = [m[name] for m in metrics_list]
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        print(f'Metric {name}:')
+        print('values:', values)
+        print('average:', np.average(values))
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
     print('Done!')
 
