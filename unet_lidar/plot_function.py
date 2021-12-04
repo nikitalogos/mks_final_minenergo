@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 
 from .dataset_loader import ImageLoader, DatasetLoader
-from .models import unet_model
+from .models_u import unet_model
 from .validate import process_one_image_lidar_pair
 
 

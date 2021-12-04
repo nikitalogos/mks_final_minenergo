@@ -12,7 +12,7 @@ from tqdm import tqdm
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(this_file_dir)
 from dataset_loader import DatasetLoader
-from models import unet_model
+from models_u import unet_model
 
 
 def process_one_image_lidar_pair(images, lidars, model, is_slice, is_regression):
