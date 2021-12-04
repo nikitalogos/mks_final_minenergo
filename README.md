@@ -75,6 +75,10 @@ To start jupyter:
 venv/bin/jupyter notebook
 ```
 
+Vizualization of dataset's processed 1x1 km image:
+
+![dataset](https://github.com/SafronovNikita/mks_final_minenergo/raw/master/RES/readme_images/dataset.png)
+
 ## Binary mask
 
 ```bash
@@ -86,6 +90,16 @@ venv/bin/jupyter notebook
 ```bash
 ./unet_lidar/train.py --name regression --is_regression 1
 ```
+
+# U-Net results:
+
+Segmentation example:
+
+![segmentation](https://github.com/SafronovNikita/mks_final_minenergo/raw/master/RES/readme_images/segmentation.png)
+
+Regression example:
+
+![regression](https://github.com/SafronovNikita/mks_final_minenergo/raw/master/RES/readme_images/regression.png)
 
 
 # Описание других алгоритмов.
